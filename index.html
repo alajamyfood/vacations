@@ -31,6 +31,7 @@
         radial-gradient(ellipse at 85% 100%, rgba(242,164,83,0.07) 0%, transparent 40%);
     }
 
+    /* Header */
     .header {
       position: sticky; top: 0; z-index: 50;
       background: rgba(10,18,16,0.92);
@@ -40,9 +41,12 @@
     }
     .header-inner {
       max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    }
+    .logo-side {
       display: flex; align-items: center; gap: 14px;
     }
-    .header-inner img {
+    .logo-side img {
       height: 52px; width: auto;
       filter: drop-shadow(0 3px 10px rgba(91,159,138,0.35));
     }
@@ -53,9 +57,53 @@
     }
     .header-text p { font-size: 0.78rem; color: var(--muted); margin-top: 1px; }
 
+    .emp-count {
+      text-align: center;
+      background: rgba(91,159,138,0.12);
+      border: 1px solid rgba(91,159,138,0.25);
+      border-radius: 14px;
+      padding: 8px 16px;
+      min-width: 70px;
+    }
+    .emp-count .num {
+      font-size: 1.4rem; font-weight: 800; color: var(--teal);
+      font-variant-numeric: lining-nums; line-height: 1;
+    }
+    .emp-count .lbl {
+      font-size: 0.7rem; color: var(--muted); margin-top: 2px;
+    }
+
+    /* Filters */
+    .filters {
+      max-width: 1200px; margin: 16px auto 0; padding: 0 16px;
+      display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+    }
+    .filter-btn {
+      padding: 9px 20px;
+      border-radius: 50px;
+      border: 1px solid rgba(91,159,138,0.3);
+      background: transparent;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .filter-btn:hover {
+      border-color: var(--teal);
+      color: var(--teal-light);
+    }
+    .filter-btn.active {
+      background: var(--teal);
+      color: #fff;
+      border-color: var(--teal);
+      box-shadow: 0 4px 14px rgba(91,159,138,0.35);
+    }
+
     .container {
       max-width: 1200px; margin: 0 auto;
-      padding: 20px 16px 50px;
+      padding: 18px 16px 50px;
     }
     .cards {
       display: grid;
@@ -94,7 +142,9 @@
       word-break: break-word;
     }
     .info .dept {
-      font-size: 0.75rem; color: var(--muted);
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--teal-light);
       margin-bottom: 5px;
     }
     .info .phone {
@@ -157,7 +207,7 @@
       font-size: 0.68rem; color: var(--muted); margin-bottom: 2px;
     }
     .meta-item .val {
-      font-size: 0.85rem; font-weight: 700; color: var(--teal-light);
+      font-size: 0.88rem; font-weight: 700; color: #FFFFFF;
       font-variant-numeric: lining-nums;
       word-break: break-word;
     }
@@ -190,13 +240,18 @@
 
     @media (max-width: 600px) {
       .header { padding: 12px 14px; }
-      .header-inner img { height: 44px; }
+      .logo-side img { height: 44px; }
       .header-text h1 { font-size: 1.1rem; }
-      .container { padding: 16px 12px 40px; }
+      .emp-count { padding: 6px 12px; }
+      .emp-count .num { font-size: 1.2rem; }
+      .filters { padding: 0 12px; gap: 6px; }
+      .filter-btn { padding: 8px 14px; font-size: 0.82rem; flex: 1; text-align: center; }
+      .container { padding: 14px 12px 40px; }
       .cards { grid-template-columns: 1fr; gap: 14px; }
       .balance-num { font-size: 2.1rem; }
       .card-top { padding: 14px 14px 8px; }
       .card-body { padding: 2px 14px 14px; }
+      .info .dept { font-size: 0.88rem; }
     }
   </style>
 </head>
@@ -204,13 +259,26 @@
 
   <header class="header">
     <div class="header-inner">
-      <img src="logo-alajamy.png" alt="Alajamy" onerror="this.style.display='none'">
-      <div class="header-text">
-        <h1>رصيد الإجازات</h1>
-        <p>العجمي • Since 1989</p>
+      <div class="logo-side">
+        <img src="logo-alajamy.png" alt="Alajamy" onerror="this.style.display='none'">
+        <div class="header-text">
+          <h1>رصيد الإجازات</h1>
+          <p>العجمي • Since 1989</p>
+        </div>
+      </div>
+      <div class="emp-count">
+        <div class="num" id="empCount">0</div>
+        <div class="lbl">موظف</div>
       </div>
     </div>
   </header>
+
+  <div class="filters" id="filters">
+    <button class="filter-btn active" data-dept="all">الكل</button>
+    <button class="filter-btn" data-dept="ASYA">ASYA</button>
+    <button class="filter-btn" data-dept="AJM">AJM</button>
+    <button class="filter-btn" data-dept="JAMAL">JAMAL</button>
+  </div>
 
   <main class="container">
     <div class="cards" id="cards">
@@ -228,6 +296,9 @@
 <script>
   const SHEET_ID = '1ZRGJwwoBHzbU2UdTz3Ws-D2XBbFlvGrHl-cqUoI3I1Q';
   const REFRESH_SEC = 60;
+
+  let allEmployees = [];
+  let currentDept = 'all';
 
   function level(b) {
     if (b >= 10) return 'high';
@@ -261,10 +332,13 @@
 
   function render(list) {
     const el = document.getElementById('cards');
+    document.getElementById('empCount').textContent = toLatin(list.length);
+
     if (!list.length) {
-      el.innerHTML = '<div class="state"><h3>لا يوجد موظفين</h3></div>';
+      el.innerHTML = '<div class="state"><h3>لا يوجد موظفين في هذا القسم</h3></div>';
       return;
     }
+
     el.innerHTML = list.map(e => {
       const lv = level(e.balance);
       const pct = Math.min(100, Math.max(5, (e.balance / 20) * 100));
@@ -309,6 +383,14 @@
     }).join('');
   }
 
+  function applyFilter() {
+    if (currentDept === 'all') {
+      render(allEmployees);
+    } else {
+      render(allEmployees.filter(e => e.dept.toUpperCase() === currentDept));
+    }
+  }
+
   function parseCSV(text) {
     const lines = text.trim().split(/\r?\n/);
     if (lines.length < 2) return [];
@@ -330,7 +412,7 @@
         balance: parseFloat(cols[2]) || 0,
         taken: parseFloat(cols[3]) || 0,
         lastLeave: cols[4] || '—',
-        dept: cols[5] || ''
+        dept: (cols[5] || '').trim()
       });
     }
     return out;
@@ -343,7 +425,8 @@
       if (!res.ok) throw new Error('network');
       const text = await res.text();
       if (text.includes('<html') || text.includes('<!DOCTYPE')) throw new Error('private');
-      render(parseCSV(text));
+      allEmployees = parseCSV(text);
+      applyFilter();
     } catch (err) {
       document.getElementById('cards').innerHTML = `
         <div class="state">
@@ -355,6 +438,16 @@
         </div>`;
     }
   }
+
+  // Filter buttons
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentDept = btn.dataset.dept;
+      applyFilter();
+    });
+  });
 
   load();
   setInterval(load, REFRESH_SEC * 1000);
