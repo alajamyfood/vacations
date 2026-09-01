@@ -130,7 +130,6 @@
       display: flex; align-items: flex-start; gap: 14px;
     }
 
-    /* Avatar / Photo */
     .avatar {
       width: 56px; height: 56px; border-radius: 14px;
       background: linear-gradient(135deg, var(--teal), var(--teal-dark));
@@ -256,38 +255,21 @@
       .emp-count { padding: 7px 12px; }
       .emp-count .num { font-size: 1.3rem; }
       .emp-count .lbl { font-size: 0.7rem; }
-
       .filters { padding: 0 12px; gap: 8px; margin-top: 14px; }
-      .filter-btn {
-        padding: 10px 12px;
-        font-size: 0.88rem;
-        flex: 1;
-        text-align: center;
-      }
-
+      .filter-btn { padding: 10px 12px; font-size: 0.88rem; flex: 1; text-align: center; }
       .container { padding: 16px 12px 45px; }
-      .cards {
-        grid-template-columns: 1fr;
-        gap: 16px;
-      }
-
-      .card {
-        border-radius: 16px;
-        border: 1.5px solid rgba(255,255,255,0.2);
-        box-shadow: 0 5px 20px rgba(0,0,0,0.4);
-      }
+      .cards { grid-template-columns: 1fr; gap: 16px; }
+      .card { border-radius: 16px; border: 1.5px solid rgba(255,255,255,0.2); box-shadow: 0 5px 20px rgba(0,0,0,0.4); }
       .card-top { padding: 16px 16px 10px; gap: 12px; }
       .avatar { width: 54px; height: 54px; font-size: 1.2rem; }
       .info h3 { font-size: 1.15rem; }
       .info .dept { font-size: 1.02rem; }
       .info .phone { font-size: 0.92rem; }
-
       .card-body { padding: 2px 16px 16px; }
       .balance-box { padding: 15px; margin-bottom: 12px; }
       .balance-label { font-size: 0.82rem; }
       .balance-num { font-size: 2.4rem; }
       .balance-unit { font-size: 0.92rem; }
-
       .meta { gap: 8px; }
       .meta-item { padding: 12px 8px; border-radius: 11px; }
       .meta-item .lbl { font-size: 0.78rem; }
@@ -370,6 +352,30 @@
     return toLatin(d.getDate().toString().padStart(2,'0') + ' ' + months[d.getMonth()] + ' ' + d.getFullYear());
   }
 
+  // Convert Google Drive links to a more reliable direct image URL
+  function fixPhotoUrl(url) {
+    if (!url) return '';
+    url = url.trim();
+
+    // Extract file ID from various Google Drive URL formats
+    let id = null;
+    const patterns = [
+      /\/file\/d\/([a-zA-Z0-9_-]+)/,
+      /id=([a-zA-Z0-9_-]+)/,
+      /\/d\/([a-zA-Z0-9_-]+)/
+    ];
+    for (const p of patterns) {
+      const m = url.match(p);
+      if (m) { id = m[1]; break; }
+    }
+
+    if (id) {
+      // Use thumbnail endpoint - more reliable for embedding
+      return `https://drive.google.com/thumbnail?id=${id}&sz=w200`;
+    }
+    return url;
+  }
+
   function render(list) {
     const el = document.getElementById('cards');
     document.getElementById('empCount').textContent = toLatin(list.length);
@@ -382,11 +388,11 @@
     el.innerHTML = list.map(e => {
       const lv = level(e.balance);
       const pct = Math.min(100, Math.max(5, (e.balance / 20) * 100));
+      const photoUrl = fixPhotoUrl(e.photo);
 
-      // Avatar: photo or initials
       let avatarHtml = '';
-      if (e.photo && e.photo.trim() !== '') {
-        avatarHtml = `<div class="avatar"><img src="${e.photo}" alt="${e.name}" onerror="this.parentElement.textContent='${initials(e.name)}'"></div>`;
+      if (photoUrl) {
+        avatarHtml = `<div class="avatar"><img src="${photoUrl}" alt="" onerror="this.style.display='none';this.parentElement.textContent='${initials(e.name)}'"></div>`;
       } else {
         avatarHtml = `<div class="avatar">${initials(e.name)}</div>`;
       }
@@ -454,8 +460,6 @@
       cols.push(cur.trim());
       if (!cols[0]) continue;
 
-      // Columns:
-      // 0: اسم | 1: هاتف | 2: رصيد | 3: مأخوذة | 4: آخر إجازة | 5: قسم | 6: تاريخ تعيين | 7: رصيد ابتدائي | 8: الصورة
       out.push({
         name: cols[0] || '—',
         phone: cols[1] || '',
