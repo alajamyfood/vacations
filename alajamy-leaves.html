@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>رصيد الإجازات | العجمي - Alajamy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --teal: #5B9F8A;
+      --teal-light: #7BB8A6;
+      --teal-dark: #28443B;
+      --orange: #F2A453;
+      --bg: #0A1210;
+      --bg-card: #12201C;
+      --bg-card-hover: #1A2F2A;
+      --text: #FFFFFF;
+      --text-muted: #A8C5BB;
+      --success: #4ADE80;
+      --warning: #FBBF24;
+      --danger: #F87171;
+      --radius: 20px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      background-image:
+        radial-gradient(ellipse at 20% 0%, rgba(91,159,138,0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 100%, rgba(242,164,83,0.08) 0%, transparent 40%);
+    }
+    .header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,18,16,0.9);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(91,159,138,0.25);
+      padding: 14px 20px;
+    }
+    .header-inner {
+      max-width: 1400px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    }
+    .logo-area { display: flex; align-items: center; gap: 14px; }
+    .logo-area img { height: 58px; width: auto; }
+    .brand-text h1 {
+      font-size: 1.35rem; font-weight: 800;
+      background: linear-gradient(135deg, #fff, var(--teal-light));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .brand-text p { font-size: 0.8rem; color: var(--text-muted); }
+    .stats-bar { display: flex; gap: 22px; }
+    .stat-item { text-align: center; }
+    .stat-item .num { font-size: 1.3rem; font-weight: 800; color: var(--teal); }
+    .stat-item .label { font-size: 0.72rem; color: var(--text-muted); }
+    .controls {
+      max-width: 1400px; margin: 22px auto 0; padding: 0 20px;
+      display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+    }
+    .search-box { flex: 1; min-width: 220px; position: relative; }
+    .search-box input {
+      width: 100%; padding: 13px 18px 13px 44px;
+      border-radius: 50px; border: 1px solid rgba(91,159,138,0.35);
+      background: var(--bg-card); color: var(--text); font-family: inherit; font-size: 0.95rem; outline: none;
+    }
+    .search-box input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(91,159,138,0.2); }
+    .search-box input::placeholder { color: var(--text-muted); }
+    .search-icon { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--teal); }
+    .filter-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-btn {
+      padding: 9px 16px; border-radius: 50px; border: 1px solid rgba(91,159,138,0.3);
+      background: transparent; color: var(--text-muted); font-family: inherit; font-size: 0.85rem;
+      font-weight: 600; cursor: pointer; transition: 0.2s;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--teal); color: #fff; border-color: var(--teal);
+    }
+    .refresh-btn {
+      padding: 11px 20px; border-radius: 50px; border: none;
+      background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+      color: #fff; font-family: inherit; font-weight: 700; font-size: 0.9rem;
+      cursor: pointer; display: flex; align-items: center; gap: 6px;
+    }
+    .refresh-btn.loading { opacity: 0.65; pointer-events: none; }
+    .last-update {
+      text-align: center; font-size: 0.78rem; color: var(--text-muted);
+      margin: 10px 0 0; padding: 0 20px;
+    }
+    .last-update span { color: var(--teal-light); font-weight: 600; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 22px 20px 50px; }
+    .cards-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px;
+    }
+    .employee-card {
+      background: var(--bg-card); border-radius: var(--radius);
+      border: 1px solid rgba(91,159,138,0.2); overflow: hidden;
+      transition: 0.3s; box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+    }
+    .employee-card:hover {
+      transform: translateY(-6px); border-color: var(--teal); background: var(--bg-card-hover);
+    }
+    .card-header { padding: 18px 18px 10px; display: flex; align-items: center; gap: 14px; }
+    .avatar {
+      width: 50px; height: 50px; border-radius: 14px;
+      background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; font-weight: 800; color: #fff; flex-shrink: 0;
+    }
+    .employee-info h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 3px; }
+    .employee-info .phone { font-size: 0.85rem; color: var(--text-muted); }
+    .phone a { color: var(--teal-light); text-decoration: none; }
+    .card-body { padding: 6px 18px 18px; }
+    .balance-section {
+      background: rgba(91,159,138,0.08); border-radius: 14px; padding: 16px;
+      text-align: center; margin-bottom: 12px; border: 1px solid rgba(91,159,138,0.15);
+    }
+    .balance-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 600; }
+    .balance-value { font-size: 2.4rem; font-weight: 800; line-height: 1; }
+    .balance-value.high { color: var(--success); }
+    .balance-value.medium { color: var(--warning); }
+    .balance-value.low { color: var(--danger); }
+    .balance-unit { font-size: 0.88rem; color: var(--text-muted); margin-top: 3px; }
+    .progress-bar { height: 5px; background: rgba(255,255,255,0.08); border-radius: 10px; margin-top: 12px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 10px; transition: width 0.7s; }
+    .progress-fill.high { background: linear-gradient(90deg, #22C55E, #4ADE80); }
+    .progress-fill.medium { background: linear-gradient(90deg, #F59E0B, #FBBF24); }
+    .progress-fill.low { background: linear-gradient(90deg, #EF4444, #F87171); }
+    .meta-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .meta-item {
+      flex: 1; min-width: 90px; background: rgba(0,0,0,0.25);
+      border-radius: 10px; padding: 10px; text-align: center;
+    }
+    .meta-item .m-label { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 3px; }
+    .meta-item .m-value { font-size: 0.9rem; font-weight: 700; color: var(--teal-light); }
+    .state-box { grid-column: 1 / -1; text-align: center; padding: 70px 20px; color: var(--text-muted); }
+    .state-box .icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.5; }
+    .state-box h3 { font-size: 1.2rem; color: var(--text); margin-bottom: 6px; }
+    .spinner {
+      width: 42px; height: 42px; border: 3px solid rgba(91,159,138,0.2);
+      border-top-color: var(--teal); border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .footer {
+      text-align: center; padding: 20px; color: var(--text-muted);
+      font-size: 0.8rem; border-top: 1px solid rgba(91,159,138,0.15);
+    }
+    .footer span { color: var(--teal); font-weight: 700; }
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: var(--teal-dark); color: #fff; padding: 12px 24px; border-radius: 50px;
+      font-weight: 600; opacity: 0; transition: 0.35s; z-index: 999; border: 1px solid var(--teal);
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    @media (max-width: 768px) {
+      .header-inner { flex-direction: column; align-items: flex-start; }
+      .logo-area img { height: 46px; }
+      .brand-text h1 { font-size: 1.15rem; }
+      .stats-bar { width: 100%; justify-content: space-around; }
+      .controls { flex-direction: column; }
+      .search-box { width: 100%; }
+      .filter-btns { width: 100%; }
+      .filter-btn { flex: 1; text-align: center; }
+      .refresh-btn { width: 100%; justify-content: center; }
+      .cards-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="logo-area">
+      <img src="logo-alajamy.png" alt="العجمي" onerror="this.style.display='none'">
+      <div class="brand-text">
+        <h1>رصيد الإجازات</h1>
+        <p>العجمي • Since 1989</p>
+      </div>
+    </div>
+    <div class="stats-bar">
+      <div class="stat-item"><div class="num" id="totalEmployees">—</div><div class="label">موظف</div></div>
+      <div class="stat-item"><div class="num" id="avgBalance">—</div><div class="label">متوسط الرصيد</div></div>
+      <div class="stat-item"><div class="num" id="lowBalanceCount">—</div><div class="label">رصيد منخفض</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="search-box">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="ابحث باسم الموظف أو رقم الهاتف...">
+  </div>
+  <div class="filter-btns">
+    <button class="filter-btn active" data-filter="all">الكل</button>
+    <button class="filter-btn" data-filter="high">رصيد جيد</button>
+    <button class="filter-btn" data-filter="medium">متوسط</button>
+    <button class="filter-btn" data-filter="low">منخفض</button>
+  </div>
+  <button class="refresh-btn" id="refreshBtn" onclick="loadData(true)">🔄 تحديث</button>
+</div>
+
+<div class="last-update" id="lastUpdate">آخر تحديث: <span>—</span></div>
+
+<main class="container">
+  <div class="cards-grid" id="cardsGrid">
+    <div class="state-box">
+      <div class="spinner"></div>
+      <h3>جاري تحميل البيانات...</h3>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <p>© <span>العجمي Alajamy</span> • Since 1989 • نظام رصيد الإجازات</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const CONFIG = {
+    SHEET_ID: '1ZRGJwwoBHzbU2UdTz3Ws-D2XBbFlvGrHl-cqUoI3I1Q',
+    AUTO_REFRESH_SECONDS: 45
+  };
+
+  let allEmployees = [];
+  let currentFilter = 'all';
+
+  function getBalanceLevel(b) {
+    if (b >= 10) return 'high';
+    if (b >= 5) return 'medium';
+    return 'low';
+  }
+
+  function getInitials(name) {
+    const p = name.trim().split(/\s+/);
+    return p.length >= 2 ? (p[0][0] + p[1][0]).toUpperCase() : name.substring(0, 2).toUpperCase();
+  }
+
+  function excelSerialToDate(serial) {
+    if (!serial || isNaN(serial)) return '—';
+    const num = Number(serial);
+    if (num < 1000) return String(serial);
+    const date = new Date(Date.UTC(1899, 11, 30) + num * 86400000);
+    return date.toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
+  function formatDate(val) {
+    if (!val || val === '—') return '—';
+    if (!isNaN(val) && Number(val) > 1000) return excelSerialToDate(val);
+    try {
+      const d = new Date(val);
+      return isNaN(d) ? val : d.toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' });
+    } catch { return val; }
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  function updateStats(data) {
+    document.getElementById('totalEmployees').textContent = data.length;
+    if (!data.length) {
+      document.getElementById('avgBalance').textContent = '—';
+      document.getElementById('lowBalanceCount').textContent = '—';
+      return;
+    }
+    const avg = data.reduce((s, e) => s + e.balance, 0) / data.length;
+    document.getElementById('avgBalance').textContent = avg.toFixed(1);
+    document.getElementById('lowBalanceCount').textContent = data.filter(e => e.balance < 5).length;
+  }
+
+  function renderCards(list) {
+    const grid = document.getElementById('cardsGrid');
+    if (!list.length) {
+      grid.innerHTML = `<div class="state-box"><div class="icon">📭</div><h3>لا يوجد نتائج</h3></div>`;
+      return;
+    }
+    grid.innerHTML = list.map(emp => {
+      const level = getBalanceLevel(emp.balance);
+      const progress = Math.min(100, Math.max(4, (emp.balance / 20) * 100));
+      return `
+        <article class="employee-card">
+          <div class="card-header">
+            <div class="avatar">${getInitials(emp.name)}</div>
+            <div class="employee-info">
+              <h3>${emp.name}</h3>
+              <div class="phone">${emp.phone && emp.phone !== '—' ? `📱 <a href="tel:${emp.phone}">${emp.phone}</a>` : '📱 —'}</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="balance-section">
+              <div class="balance-label">الرصيد المتبقي</div>
+              <div class="balance-value ${level}">${emp.balance}</div>
+              <div class="balance-unit">يوم إجازة</div>
+              <div class="progress-bar"><div class="progress-fill ${level}" style="width:${progress}%"></div></div>
+            </div>
+            <div class="meta-row">
+              <div class="meta-item"><div class="m-label">أيام مأخوذة</div><div class="m-value">${emp.taken}</div></div>
+              <div class="meta-item"><div class="m-label">آخر إجازة</div><div class="m-value">${formatDate(emp.lastLeave)}</div></div>
+              ${emp.dept ? `<div class="meta-item"><div class="m-label">القسم</div><div class="m-value">${emp.dept}</div></div>` : ''}
+            </div>
+          </div>
+        </article>`;
+    }).join('');
+  }
+
+  function applyFilters() {
+    const q = document.getElementById('searchInput').value.trim().toLowerCase();
+    let filtered = allEmployees;
+    if (q) {
+      filtered = filtered.filter(e =>
+        e.name.toLowerCase().includes(q) ||
+        (e.phone && e.phone.includes(q)) ||
+        (e.dept && e.dept.toLowerCase().includes(q))
+      );
+    }
+    if (currentFilter !== 'all') {
+      filtered = filtered.filter(e => getBalanceLevel(e.balance) === currentFilter);
+    }
+    renderCards(filtered);
+  }
+
+  function parseCSV(text) {
+    const lines = text.trim().split(/\r?\n/);
+    if (lines.length < 2) return [];
+    const rows = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = lines[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || lines[i].split(',');
+      const clean = cols.map(c => c.replace(/^"|"$/g, '').trim());
+      if (!clean[0]) continue;
+      rows.push({
+        name: clean[0] || 'بدون اسم',
+        phone: clean[1] || '—',
+        balance: parseFloat(clean[2]) || 0,
+        taken: parseFloat(clean[3]) || 0,
+        lastLeave: clean[4] || '—',
+        dept: clean[5] || ''
+      });
+    }
+    return rows;
+  }
+
+  async function loadFromSheet() {
+    const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/export?format=csv&t=${Date.now()}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('فشل الاتصال بالشيت (تأكد أنه عام)');
+    const text = await res.text();
+    if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+      throw new Error('الشيت غير متاح للعامة. اجعله Anyone with the link');
+    }
+    return parseCSV(text);
+  }
+
+  async function loadData(showLoading = true) {
+    const btn = document.getElementById('refreshBtn');
+    const grid = document.getElementById('cardsGrid');
+    if (showLoading) {
+      btn.classList.add('loading');
+      if (allEmployees.length === 0) {
+        grid.innerHTML = `<div class="state-box"><div class="spinner"></div><h3>جاري التحديث...</h3></div>`;
+      }
+    }
+    try {
+      const newData = await loadFromSheet();
+      const oldNames = new Set(allEmployees.map(e => e.name));
+      const added = newData.filter(e => !oldNames.has(e.name));
+      if (added.length && allEmployees.length) showToast(`تم إضافة ${added.length} موظف جديد ✓`);
+      else if (showLoading) showToast('تم تحديث البيانات ✓');
+
+      allEmployees = newData;
+      updateStats(allEmployees);
+      applyFilters();
+
+      const timeStr = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      document.getElementById('lastUpdate').innerHTML = `آخر تحديث: <span>${timeStr}</span> • كل ${CONFIG.AUTO_REFRESH_SECONDS} ثانية`;
+    } catch (err) {
+      console.error(err);
+      if (allEmployees.length === 0) {
+        grid.innerHTML = `
+          <div class="state-box">
+            <div class="icon">⚠️</div>
+            <h3>تعذر تحميل البيانات</h3>
+            <p>${err.message}</p>
+            <p style="margin-top:10px;font-size:0.85rem;line-height:1.6">
+              الحلول:<br>
+              1. تأكد أن الشيت Share → Anyone with the link<br>
+              2. لا تفتح الملف مباشرة من الكمبيوتر<br>
+              3. استخدم Live Server أو ارفع الملف على نتlify
+            </p>
+          </div>`;
+      }
+      if (showLoading) showToast('خطأ في التحميل');
+    } finally {
+      btn.classList.remove('loading');
+    }
+  }
+
+  document.getElementById('searchInput').addEventListener('input', applyFilters);
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      applyFilters();
+    });
+  });
+
+  loadData(true);
+  if (CONFIG.AUTO_REFRESH_SECONDS > 0) {
+    setInterval(() => loadData(false), CONFIG.AUTO_REFRESH_SECONDS * 1000);
+  }
+</script>
+</body>
+</html>
