@@ -31,7 +31,6 @@
         radial-gradient(ellipse at 85% 100%, rgba(242,164,83,0.07) 0%, transparent 40%);
     }
 
-    /* Header */
     .header {
       position: sticky; top: 0; z-index: 50;
       background: rgba(10,18,16,0.92);
@@ -54,18 +53,16 @@
     }
     .header-text p { font-size: 0.78rem; color: var(--muted); margin-top: 1px; }
 
-    /* Cards container */
     .container {
       max-width: 1200px; margin: 0 auto;
       padding: 20px 16px 50px;
     }
     .cards {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
       gap: 16px;
     }
 
-    /* Card */
     .card {
       background: var(--card);
       border-radius: 18px;
@@ -79,25 +76,48 @@
       border-color: var(--teal);
       background: var(--card-hover);
     }
+
     .card-top {
-      padding: 16px 16px 8px;
-      display: flex; align-items: center; gap: 12px;
+      padding: 16px 16px 10px;
+      display: flex; align-items: flex-start; gap: 12px;
     }
     .avatar {
-      width: 46px; height: 46px; border-radius: 12px;
+      width: 48px; height: 48px; border-radius: 13px;
       background: linear-gradient(135deg, var(--teal), var(--teal-dark));
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem; font-weight: 800; color: #fff; flex-shrink: 0;
+      font-size: 1.15rem; font-weight: 800; color: #fff; flex-shrink: 0;
     }
+    .info { flex: 1; min-width: 0; }
     .info h3 {
       font-size: 1rem; font-weight: 700;
-      line-height: 1.3; margin-bottom: 2px;
+      line-height: 1.3; margin-bottom: 4px;
+      word-break: break-word;
     }
     .info .dept {
-      font-size: 0.78rem; color: var(--muted);
+      font-size: 0.75rem; color: var(--muted);
+      margin-bottom: 6px;
     }
 
-    .card-body { padding: 6px 16px 16px; }
+    /* Contact links */
+    .contact {
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .contact a {
+      font-size: 0.8rem;
+      color: var(--teal-light);
+      text-decoration: none;
+      display: flex; align-items: center; gap: 5px;
+      transition: color 0.2s;
+      direction: ltr;
+      text-align: right;
+      justify-content: flex-end;
+    }
+    .contact a:hover { color: var(--orange); }
+    .contact .empty {
+      font-size: 0.78rem; color: var(--muted); opacity: 0.7;
+    }
+
+    .card-body { padding: 4px 16px 16px; }
 
     .balance-box {
       background: rgba(91,159,138,0.08);
@@ -146,11 +166,11 @@
       font-size: 0.68rem; color: var(--muted); margin-bottom: 2px;
     }
     .meta-item .val {
-      font-size: 0.88rem; font-weight: 700; color: var(--teal-light);
+      font-size: 0.85rem; font-weight: 700; color: var(--teal-light);
       font-variant-numeric: lining-nums;
+      word-break: break-word;
     }
 
-    /* States */
     .state {
       grid-column: 1 / -1;
       text-align: center;
@@ -177,7 +197,6 @@
     }
     .footer b { color: var(--teal); }
 
-    /* Mobile */
     @media (max-width: 600px) {
       .header { padding: 12px 14px; }
       .header-inner img { height: 44px; }
@@ -185,8 +204,8 @@
       .container { padding: 16px 12px 40px; }
       .cards { grid-template-columns: 1fr; gap: 14px; }
       .balance-num { font-size: 2.1rem; }
-      .card-top { padding: 14px 14px 6px; }
-      .card-body { padding: 4px 14px 14px; }
+      .card-top { padding: 14px 14px 8px; }
+      .card-body { padding: 2px 14px 14px; }
     }
   </style>
 </head>
@@ -219,8 +238,6 @@
   const SHEET_ID = '1ZRGJwwoBHzbU2UdTz3Ws-D2XBbFlvGrHl-cqUoI3I1Q';
   const REFRESH_SEC = 60;
 
-  let employees = [];
-
   function level(b) {
     if (b >= 10) return 'high';
     if (b >= 5) return 'medium';
@@ -233,20 +250,17 @@
     return name.substring(0, 2).toUpperCase();
   }
 
-  // Always Latin numbers + English month
   function toLatin(n) {
     return String(n).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
   }
 
   function formatDate(val) {
     if (!val || val === '' || val === '—') return '—';
-    // Excel serial
     if (!isNaN(val) && Number(val) > 30000) {
       const d = new Date(Date.UTC(1899, 11, 30) + Number(val) * 86400000);
       const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
       return toLatin(d.getUTCDate().toString().padStart(2,'0') + ' ' + months[d.getUTCMonth()] + ' ' + d.getUTCFullYear());
     }
-    // Already text (e.g. اجازة عيد الاضحى) → keep as is
     if (isNaN(Date.parse(val))) return val;
     const d = new Date(val);
     if (isNaN(d)) return val;
@@ -263,6 +277,24 @@
     el.innerHTML = list.map(e => {
       const lv = level(e.balance);
       const pct = Math.min(100, Math.max(5, (e.balance / 20) * 100));
+
+      // Phone
+      let phoneHtml = '';
+      if (e.phone && e.phone !== '—' && e.phone.trim() !== '') {
+        const cleanPhone = e.phone.replace(/\s+/g, '');
+        phoneHtml = `<a href="tel:${cleanPhone}">📞 ${toLatin(e.phone)}</a>`;
+      } else {
+        phoneHtml = `<span class="empty">📞 —</span>`;
+      }
+
+      // Email
+      let emailHtml = '';
+      if (e.email && e.email !== '—' && e.email.trim() !== '') {
+        emailHtml = `<a href="mailto:${e.email}">✉️ ${e.email}</a>`;
+      } else {
+        emailHtml = `<span class="empty">✉️ —</span>`;
+      }
+
       return `
         <article class="card">
           <div class="card-top">
@@ -270,6 +302,10 @@
             <div class="info">
               <h3>${e.name}</h3>
               <div class="dept">${e.dept || '—'}</div>
+              <div class="contact">
+                ${phoneHtml}
+                ${emailHtml}
+              </div>
             </div>
           </div>
           <div class="card-body">
@@ -299,7 +335,6 @@
     if (lines.length < 2) return [];
     const out = [];
     for (let i = 1; i < lines.length; i++) {
-      // simple CSV split that respects quotes
       const cols = [];
       let cur = '', inQ = false;
       for (let c of lines[i]) {
@@ -309,13 +344,18 @@
       }
       cols.push(cur.trim());
       if (!cols[0]) continue;
+
+      // Current sheet columns:
+      // 0: اسم | 1: هاتف | 2: رصيد | 3: مأخوذة | 4: آخر إجازة | 5: قسم | 6: تاريخ تعيين | 7: رصيد ابتدائي
+      // If you add Email later, put it in column I (index 8)
       out.push({
         name: cols[0] || '—',
         phone: cols[1] || '',
         balance: parseFloat(cols[2]) || 0,
         taken: parseFloat(cols[3]) || 0,
         lastLeave: cols[4] || '—',
-        dept: cols[5] || ''
+        dept: cols[5] || '',
+        email: cols[8] || cols[7] || ''   // tries column I first, then H as fallback
       });
     }
     return out;
@@ -328,8 +368,7 @@
       if (!res.ok) throw new Error('network');
       const text = await res.text();
       if (text.includes('<html') || text.includes('<!DOCTYPE')) throw new Error('private');
-      employees = parseCSV(text);
-      render(employees);
+      render(parseCSV(text));
     } catch (err) {
       document.getElementById('cards').innerHTML = `
         <div class="state">
